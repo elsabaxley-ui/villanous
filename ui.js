@@ -149,18 +149,27 @@ function renderRealm(p) {
   p.board.forEach((loc, i) => {
     const isHere = p.moverLocation === i;
     const heroPresent = loc.heroes.length > 0;
+    // Actions only become usable in the "actions" phase, at the location
+    // you moved to this turn.
+    const canAct = isHere && game.phase === "actions";
     const card = el("div", "location" + (isHere ? " here" : ""));
     card.appendChild(el("div", "loc-head",
       `<span class="loc-name">${loc.name}</span>${
-        isHere ? '<span class="loc-mover">🦹 You are here</span>' : ""
+        isHere
+          ? `<span class="loc-mover">🦹 ${
+              game.phase === "move"
+                ? "Start — move somewhere else first"
+                : "You are here"
+            }</span>`
+          : ""
       }`));
 
     // Action symbols.
     const acts = el("div", "loc-actions");
     const top = el("div", "act-row" + (heroPresent ? " covered" : ""));
-    loc.topActions.forEach((a) => top.appendChild(actionChip(a, isHere && !heroPresent)));
+    loc.topActions.forEach((a) => top.appendChild(actionChip(a, canAct && !heroPresent)));
     const bottom = el("div", "act-row");
-    loc.bottomActions.forEach((a) => bottom.appendChild(actionChip(a, isHere)));
+    loc.bottomActions.forEach((a) => bottom.appendChild(actionChip(a, canAct)));
     acts.appendChild(top);
     acts.appendChild(bottom);
     card.appendChild(acts);
