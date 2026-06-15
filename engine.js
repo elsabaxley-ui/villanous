@@ -45,6 +45,7 @@ function makePlayer(villainKey, index) {
       name: loc.name,
       topActions: loc.topActions,
       bottomActions: loc.bottomActions,
+      locked: !!loc.locked, // some realms start with a locked location
       cards: [], // allies / items / effects placed here
       heroes: [], // fate heroes placed here
     })),
@@ -112,6 +113,8 @@ function moveMover(game, locIndex) {
   if (game.phase !== "move") return fail("You have already moved this turn.");
   if (locIndex === p.moverLocation)
     return fail("You must move to a DIFFERENT location.");
+  if (p.board[locIndex].locked)
+    return fail(`${p.board[locIndex].name} is locked — unlock it first.`);
   p.moverLocation = locIndex;
   game.moved = true;
   game.phase = "actions";
@@ -168,6 +171,31 @@ function actPlayCard(game, action, cardId, locIndex) {
     }
     if (card.auto.draw) {
       drawCards(p, card.auto.draw);
+    }
+  }
+
+  // Unlock a locked location (e.g. Never Land Map, Scarab Pendant).
+  if (card.unlock) {
+    const loc = p.board.find((l) => l.name === card.unlock);
+    if (loc && loc.locked) {
+      loc.locked = false;
+      logMsg(game, `${p.name} unlocked ${loc.name}.`);
+    }
+  }
+
+  // Move a lock token between two locations (Ursula's Change Form).
+  if (card.lockToggle) {
+    const [a, b] = card.lockToggle.map((n) => p.board.find((l) => l.name === n));
+    if (a && b) {
+      if (a.locked) {
+        a.locked = false;
+        b.locked = true;
+      } else {
+        a.locked = true;
+        b.locked = false;
+      }
+      const lockedNow = a.locked ? a.name : b.name;
+      logMsg(game, `${p.name} moved the Lock Token onto ${lockedNow}.`);
     }
   }
 
@@ -317,13 +345,20 @@ function actMoveHero(game, action, heroId, toLocIndex) {
 function actDiscard(game, action, cardIds) {
   const p = currentPlayer(game);
   if (!isActionAvailable(game, action)) return fail("Discard isn't available here.");
+  let n = 0;
   cardIds.forEach((id) => {
     const i = p.hand.findIndex((c) => c.id === id);
-    if (i !== -1) p.discard.push(p.hand.splice(i, 1)[0]);
+    if (i !== -1) {
+      p.discard.push(p.hand.splice(i, 1)[0]);
+      n++;
+    }
   });
+  // Draw replacements right away so the player sees their new hand
+  // (the end-of-turn top-up to 4 still applies afterwards).
+  drawCards(p, n);
   markActionUsed(game, action);
-  logMsg(game, `${p.name} discarded ${cardIds.length} card(s).`);
-  return ok();
+  logMsg(game, `${p.name} discarded ${n} card(s) and drew ${n} new.`);
+  return ok({ drew: n });
 }
 
 // Generic "Activate" — left to manual resolution; just marks used.

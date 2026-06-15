@@ -57,8 +57,8 @@ const VILLAINS = {
     key: "maleficent",
     name: "Maleficent",
     title: "The Mistress of All Evil",
-    color: "#7b2fa8",
-    heart: "💜",
+    color: "#2f9e4f",
+    heart: "💚",
     objectiveText:
       "Start your turn with a Curse at each of the four locations in your realm.",
     objective: (P) =>
@@ -122,7 +122,7 @@ const VILLAINS = {
     key: "hook",
     name: "Captain Hook",
     title: "The Captain of the Jolly Roger",
-    color: "#b3122a",
+    color: "#c41e3a",
     heart: "❤️",
     objectiveText:
       "Defeat Peter Pan at the Jolly Roger.",
@@ -147,11 +147,14 @@ const VILLAINS = {
       },
       {
         name: "Hangman's Tree",
+        locked: true, // unlocked by playing the Never Land Map
         topActions: [{ a: "play" }, { a: "fate" }],
         bottomActions: [{ a: "power", n: 1 }, { a: "vanquish" }],
       },
     ],
     deck: [
+      ...copies(1, { name: "Never Land Map", type: "item", cost: 2,
+        text: "Unlock Hangman's Tree.", unlock: "Hangman's Tree" }),
       ...copies(4, { name: "Pirate", type: "ally", cost: 1, strength: 1,
         text: "Crew of the Jolly Roger. Strength 1." }),
       ...copies(3, { name: "Mr. Smee", type: "ally", cost: 2, strength: 2,
@@ -186,8 +189,8 @@ const VILLAINS = {
     key: "princejohn",
     name: "Prince John",
     title: "The Phony King of England",
-    color: "#1f7a3d",
-    heart: "💚",
+    color: "#e6c12f",
+    heart: "💛",
     objectiveText: "Start your turn with at least 20 Power.",
     objective: (P) => P.power >= 20,
     locations: [
@@ -202,14 +205,14 @@ const VILLAINS = {
         bottomActions: [{ a: "play" }, { a: "discard" }],
       },
       {
-        name: "The Jail",
-        topActions: [{ a: "power", n: 3 }, { a: "vanquish" }],
-        bottomActions: [{ a: "play" }, { a: "moveHero" }],
-      },
-      {
         name: "Nottingham",
         topActions: [{ a: "power", n: 2 }, { a: "play" }],
         bottomActions: [{ a: "power", n: 1 }, { a: "fate" }],
+      },
+      {
+        name: "The Jail",
+        topActions: [{ a: "power", n: 3 }, { a: "vanquish" }],
+        bottomActions: [{ a: "play" }, { a: "moveHero" }],
       },
     ],
     deck: [
@@ -246,8 +249,8 @@ const VILLAINS = {
     key: "queenofhearts",
     name: "Queen of Hearts",
     title: "Her Imperious Majesty",
-    color: "#c0143c",
-    heart: "❤️",
+    color: "#e34aa0",
+    heart: "🩷",
     objectiveText:
       "Have a Wicket at every location, then take a turn without losing your temper (resolve the temper roll manually).",
     objective: (P) =>
@@ -255,22 +258,22 @@ const VILLAINS = {
       !!P.flags.keptTemper,
     locations: [
       {
-        name: "Rose Garden",
+        name: "Courtyard",
         topActions: [{ a: "play" }, { a: "power", n: 1 }],
         bottomActions: [{ a: "fate" }, { a: "moveAllyItem" }],
       },
       {
-        name: "Tulgey Wood",
+        name: "Hedge Maze",
         topActions: [{ a: "power", n: 2 }, { a: "play" }],
         bottomActions: [{ a: "activate" }, { a: "discard" }],
       },
       {
-        name: "Croquet Grounds",
+        name: "Tulgey Wood",
         topActions: [{ a: "play" }, { a: "vanquish" }],
         bottomActions: [{ a: "power", n: 1 }, { a: "moveHero" }],
       },
       {
-        name: "Queen's Castle",
+        name: "White Rabbit's House",
         topActions: [{ a: "play" }, { a: "fate" }],
         bottomActions: [{ a: "power", n: 1 }, { a: "activate" }],
       },
@@ -308,13 +311,18 @@ const VILLAINS = {
     key: "ursula",
     name: "Ursula",
     title: "The Sea Witch",
-    color: "#5a2d82",
+    color: "#8e44c9",
     heart: "💜",
     objectiveText:
-      "Have both King Triton's Trident and the Crown in your realm at the start of your turn.",
-    objective: (P) =>
-      P.board.some((loc) => loc.cards.some((c) => c.subtype === "trident")) &&
-      P.board.some((loc) => loc.cards.some((c) => c.subtype === "crown")),
+      "Start your turn with King Triton's Trident and the Crown at Ursula's Lair.",
+    objective: (P) => {
+      const lair = P.board.find((l) => l.name === "Ursula's Lair");
+      return (
+        !!lair &&
+        lair.cards.some((c) => c.subtype === "trident") &&
+        lair.cards.some((c) => c.subtype === "crown")
+      );
+    },
     locations: [
       {
         name: "Ursula's Lair",
@@ -327,17 +335,21 @@ const VILLAINS = {
         bottomActions: [{ a: "power", n: 1 }, { a: "moveHero" }],
       },
       {
-        name: "Triton's Palace",
+        name: "The Shore",
         topActions: [{ a: "power", n: 2 }, { a: "play" }],
         bottomActions: [{ a: "moveAllyItem" }, { a: "discard" }],
       },
       {
-        name: "The Lagoon",
+        name: "The Palace",
+        locked: true, // lock token starts here; Change Form moves it
         topActions: [{ a: "power", n: 1 }, { a: "fate" }],
         bottomActions: [{ a: "play" }, { a: "activate" }],
       },
     ],
     deck: [
+      ...copies(2, { name: "Change Form", type: "effect", cost: 1,
+        text: "Move the Lock Token between Ursula's Lair and The Palace.",
+        lockToggle: ["Ursula's Lair", "The Palace"] }),
       ...copies(4, { name: "Eel", type: "ally", cost: 1, strength: 1,
         text: "Flotsam or Jetsam. Strength 1." }),
       ...copies(2, { name: "Crown", type: "item", subtype: "crown", cost: 3,
@@ -373,8 +385,8 @@ const VILLAINS = {
     key: "jafar",
     name: "Jafar",
     title: "The Royal Vizier of Agrabah",
-    color: "#9a3b1b",
-    heart: "🧡",
+    color: "#4b4a57",
+    heart: "🖤",
     objectiveText:
       "Have the Magic Lamp at the Sultan's Palace and the Genie under your control at the start of your turn.",
     objective: (P) => {
@@ -387,27 +399,30 @@ const VILLAINS = {
     },
     locations: [
       {
-        name: "Streets of Agrabah",
-        topActions: [{ a: "power", n: 1 }, { a: "play" }],
-        bottomActions: [{ a: "fate" }, { a: "moveAllyItem" }],
+        name: "Sultan's Palace",
+        topActions: [{ a: "play" }, { a: "activate" }],
+        bottomActions: [{ a: "vanquish" }, { a: "fate" }],
       },
       {
-        name: "The Jail",
-        topActions: [{ a: "power", n: 2 }, { a: "play" }],
-        bottomActions: [{ a: "activate" }, { a: "discard" }],
+        name: "Streets of Agrabah",
+        topActions: [{ a: "power", n: 1 }, { a: "fate" }],
+        bottomActions: [{ a: "discard" }, { a: "play" }],
+      },
+      {
+        name: "Oasis",
+        topActions: [{ a: "activate" }, { a: "play" }],
+        bottomActions: [{ a: "power", n: 3 }, { a: "play" }],
       },
       {
         name: "Cave of Wonders",
+        locked: true, // unlocked by playing the Scarab Pendant
         topActions: [{ a: "play" }, { a: "power", n: 2 }],
         bottomActions: [{ a: "moveAllyItem" }, { a: "vanquish" }],
       },
-      {
-        name: "Sultan's Palace",
-        topActions: [{ a: "play" }, { a: "activate" }],
-        bottomActions: [{ a: "power", n: 1 }, { a: "fate" }],
-      },
     ],
     deck: [
+      ...copies(1, { name: "Scarab Pendant", type: "item", cost: 2,
+        text: "Unlock the Cave of Wonders.", unlock: "Cave of Wonders" }),
       ...copies(4, { name: "Palace Guards", type: "ally", cost: 1, strength: 1,
         text: "Loyal to the Vizier. Strength 1." }),
       ...copies(2, { name: "Iago", type: "ally", cost: 2, strength: 2,

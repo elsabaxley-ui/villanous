@@ -90,12 +90,24 @@ body {
 .realm { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 
 .location {
-  background: linear-gradient(170deg, var(--panel), var(--bg2));
-  border: 1px solid var(--line); border-radius: 14px; padding: 12px;
+  background: linear-gradient(170deg, color-mix(in srgb, var(--vc) 16%, var(--panel)), var(--bg2));
+  border: 1px solid color-mix(in srgb, var(--vc) 35%, var(--line));
+  border-top: 4px solid var(--vc);
+  border-radius: 14px; padding: 12px;
 }
 .location.here { border-color: var(--vc); box-shadow: 0 0 0 2px var(--vc); }
-.loc-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.loc-name { font-weight: bold; font-size: 15px; }
+.location.locked { opacity: .58; filter: grayscale(.4); }
+.location.locked .loc-actions { opacity: .5; }
+.loc-lock {
+  font-size: 11px; color: var(--gold); font-weight: bold;
+  border: 1px solid var(--gold); border-radius: 6px; padding: 1px 7px;
+}
+.loc-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px; padding-bottom: 6px;
+  border-bottom: 2px solid color-mix(in srgb, var(--vc) 55%, transparent);
+}
+.loc-name { font-weight: bold; font-size: 15px; color: color-mix(in srgb, var(--vc) 65%, var(--ink)); }
 .loc-mover { font-size: 11px; color: var(--gold); }
 .loc-actions { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .act-row { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -105,7 +117,11 @@ body {
   border: 1px solid var(--line); background: var(--panel2); color: var(--muted);
   cursor: default;
 }
-.act-chip.active { color: var(--ink); border-color: var(--gold); cursor: pointer; background: #2c2350; }
+.act-chip.active {
+  color: var(--ink); cursor: pointer;
+  border-color: var(--vc);
+  background: color-mix(in srgb, var(--vc) 28%, var(--panel2));
+}
 .act-chip.active:hover { background: var(--vc); color: #fff; }
 .act-chip.used { text-decoration: line-through; opacity: .4; }
 
@@ -119,6 +135,8 @@ body {
 .token-hero { border-color: #c0143c; background: #2a1320; }
 .token-ally { border-color: #2f7a4a; }
 .token-item { border-color: var(--gold); }
+.token.sub-curse { border-color: #b06ad0; background: #241430; box-shadow: 0 0 8px #b06ad055; }
+.token.sub-curse .tok-name { color: #cf9ae6; }
 .tok-name { font-weight: bold; font-size: 12px; }
 .tok-str { font-size: 11px; color: var(--gold); }
 .tok-text { font-size: 10px; color: var(--muted); line-height: 1.3; margin-top: 2px; }
@@ -152,10 +170,18 @@ body {
 .type-effect { border-top: 4px solid #4a7adf; }
 .type-condition { border-top: 4px solid #b06ad0; }
 .type-hero { border-top: 4px solid #c0143c; }
+/* Curses are always purple, in hand and on the board. */
+.play-card.sub-curse { border-top: 4px solid #b06ad0; background: linear-gradient(170deg, #2a1840, #160e26); }
+.play-card.sub-curse .pc-name { color: #cf9ae6; }
 .pc-cost { position: absolute; top: 8px; right: 8px; font-size: 12px; color: var(--gold); font-weight: bold; }
 .pc-name { font-weight: bold; font-size: 14px; padding-right: 28px; }
 .pc-type { font-size: 10px; text-transform: uppercase; color: var(--muted); letter-spacing: .5px; margin: 4px 0; }
 .pc-text { font-size: 11px; color: var(--ink); line-height: 1.35; }
+.pc-flag {
+  margin-top: 6px; font-size: 10px; line-height: 1.3;
+  color: #ffd98a; background: #3a2c0e; border: 1px solid #6b5012;
+  border-radius: 6px; padding: 4px 6px;
+}
 
 /* ---- Modal / fate ---- */
 .overlay { position: fixed; inset: 0; background: #000a; display: grid; place-items: center; z-index: 50; }
@@ -175,4 +201,74 @@ body {
 @media (max-width: 860px) {
   .main { grid-template-columns: 1fr; }
   .realm { grid-template-columns: 1fr; }
+}
+
+/* ---- Per-villain background atmosphere ----
+   Each is a tiny tiled SVG watermark + a themed dark gradient. Kept very
+   low-opacity so it sets a mood without competing with the cards. */
+body[class^="theme-"] { background-attachment: fixed; transition: background-color .4s ease; }
+
+/* Maleficent — medieval diamond lattice (leaded glass / portcullis) */
+body.theme-maleficent {
+  background-color: #0a120d;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M0 20L20 0L40 20L20 40Z' fill='none' stroke='%233fdc74' stroke-opacity='0.06'/%3E%3C/svg%3E"),
+    radial-gradient(1100px 560px at 50% -10%, rgba(47,158,79,0.10), transparent 70%),
+    radial-gradient(1200px 600px at 50% -10%, #142a1c, #0a120d);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 40px 40px, 100% 100%, 100% 100%;
+}
+
+/* Ursula — underwater: drifting bubbles in a deep-ocean gradient */
+body.theme-ursula {
+  background-color: #07131c;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill='none' stroke='%2350d8d2' stroke-opacity='0.07'%3E%3Ccircle cx='30' cy='40' r='6'/%3E%3Ccircle cx='95' cy='85' r='10'/%3E%3Ccircle cx='120' cy='30' r='4'/%3E%3Ccircle cx='60' cy='115' r='7'/%3E%3Ccircle cx='18' cy='100' r='3'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 700px at 50% 120%, rgba(80,216,210,0.10), transparent 60%),
+    radial-gradient(1200px 700px at 50% -10%, #0c2233, #07131c);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 140px 140px, 100% 100%, 100% 100%;
+}
+
+/* Captain Hook — nautical: ship's wheel watermark over rolling waves */
+body.theme-hook {
+  background-color: #110a0c;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cg stroke='%23ff6b7d' stroke-opacity='0.06' fill='none'%3E%3Ccircle cx='80' cy='70' r='28'/%3E%3Ccircle cx='80' cy='70' r='11'/%3E%3Cpath d='M80 34L80 106M44 70L116 70M56 46L104 94M104 46L56 94'/%3E%3Cpath d='M0 150 Q20 140 40 150 T80 150 T120 150 T160 150'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1200px 620px at 50% -10%, #281218, #110a0c);
+  background-repeat: repeat, no-repeat;
+  background-size: 160px 160px, 100% 100%;
+}
+
+/* Prince John — riches: scattered gold coins with a warm glow */
+body.theme-princejohn {
+  background-color: #12100a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23ffd34a' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='32' r='12'/%3E%3Ccircle cx='90' cy='72' r='16'/%3E%3Ccircle cx='62' cy='104' r='9'/%3E%3C/g%3E%3Cg fill='none' stroke='%23ffd34a' stroke-opacity='0.07'%3E%3Ccircle cx='30' cy='32' r='7'/%3E%3Ccircle cx='90' cy='72' r='10'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(900px 520px at 50% 10%, rgba(255,211,74,0.10), transparent 60%),
+    radial-gradient(1200px 620px at 50% -10%, #241f10, #12100a);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 120px 120px, 100% 100%, 100% 100%;
+}
+
+/* Jafar — Arabian: coiling serpents over a sand-night gradient */
+body.theme-jafar {
+  background-color: #100c08;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='none' stroke='%23cda653' stroke-opacity='0.08' stroke-width='1.4'%3E%3Cpath d='M22 10 Q42 30 22 50 Q2 70 22 90'/%3E%3Cpath d='M92 24 Q72 44 92 64 Q112 84 92 104'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(900px 520px at 50% 0%, rgba(205,166,83,0.08), transparent 60%),
+    radial-gradient(1200px 620px at 50% -10%, #221a10, #100c08);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 120px 120px, 100% 100%, 100% 100%;
+}
+
+/* Queen of Hearts — whimsical scattered playing-card hearts */
+body.theme-queenofhearts {
+  background-color: #140a10;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cg fill='%23ff63b0' fill-opacity='0.06'%3E%3Cpath transform='translate(14,16) scale(1.4)' d='M12 21C12 21 3 14 3 8C3 5 5 3 8 3C10 3 12 5 12 6C12 5 14 3 16 3C19 3 21 5 21 8C21 14 12 21 12 21Z'/%3E%3Cpath transform='translate(78,60) scale(2)' d='M12 21C12 21 3 14 3 8C3 5 5 3 8 3C10 3 12 5 12 6C12 5 14 3 16 3C19 3 21 5 21 8C21 14 12 21 12 21Z'/%3E%3Cpath transform='translate(52,98) scale(1)' d='M12 21C12 21 3 14 3 8C3 5 5 3 8 3C10 3 12 5 12 6C12 5 14 3 16 3C19 3 21 5 21 8C21 14 12 21 12 21Z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 560px at 50% -10%, rgba(227,74,160,0.10), transparent 65%),
+    radial-gradient(1200px 620px at 50% -10%, #2a1020, #140a10);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 130px 130px, 100% 100%, 100% 100%;
 }

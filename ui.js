@@ -22,6 +22,8 @@ const el = (tag, cls, html) => {
 function renderSetup() {
   const root = $("#app");
   root.innerHTML = "";
+  root.style.removeProperty("--vc"); // back to default theme for setup
+  document.body.className = ""; // clear villain atmosphere on setup screen
   const wrap = el("div", "setup");
   wrap.appendChild(el("h1", "title", "Villainous <span>Online</span>"));
   wrap.appendChild(
@@ -98,6 +100,11 @@ function render() {
   const root = $("#app");
   root.innerHTML = "";
   const p = currentPlayer(game);
+  // Theme the WHOLE game screen with the active villain's color so every
+  // location, button and accent inherits it.
+  root.style.setProperty("--vc", VILLAINS[p.villainKey].color);
+  // Per-villain background atmosphere (see styles.css body.theme-*).
+  document.body.className = "theme-" + p.villainKey;
 
   root.appendChild(renderTopBar(p));
   const main = el("div", "main");
@@ -151,11 +158,13 @@ function renderRealm(p) {
     const heroPresent = loc.heroes.length > 0;
     // Actions only become usable in the "actions" phase, at the location
     // you moved to this turn.
-    const canAct = isHere && game.phase === "actions";
-    const card = el("div", "location" + (isHere ? " here" : ""));
+    const canAct = isHere && game.phase === "actions" && !loc.locked;
+    const card = el("div", "location" + (isHere ? " here" : "") + (loc.locked ? " locked" : ""));
     card.appendChild(el("div", "loc-head",
-      `<span class="loc-name">${loc.name}</span>${
-        isHere
+      `<span class="loc-name">${loc.locked ? "🔒 " : ""}${loc.name}</span>${
+        loc.locked
+          ? '<span class="loc-lock">Locked</span>'
+          : isHere
           ? `<span class="loc-mover">🦹 ${
               game.phase === "move"
                 ? "Start — move somewhere else first"
@@ -190,8 +199,8 @@ function renderRealm(p) {
       card.appendChild(cbox);
     }
 
-    // Move-here button.
-    if (game.phase === "move" && !isHere) {
+    // Move-here button (not for locked locations).
+    if (game.phase === "move" && !isHere && !loc.locked) {
       const mv = el("button", "btn btn-move", "Move here");
       mv.addEventListener("click", () => {
         const r = moveMover(game, i);
@@ -225,7 +234,8 @@ function actionChip(action, active) {
 }
 
 function tokenCard(c, kind) {
-  const t = el("div", "token token-" + kind);
+  const subCls = c.subtype ? " sub-" + c.subtype : "";
+  const t = el("div", "token token-" + kind + subCls);
   t.innerHTML = `
     <div class="tok-name">${c.name}</div>
     ${c.strength != null ? `<div class="tok-str">💪 ${c.strength}</div>` : ""}
@@ -272,12 +282,18 @@ function renderHand(p) {
   const cards = el("div", "hand-cards");
   if (!p.hand.length) cards.appendChild(el("div", "muted", "No cards in hand."));
   p.hand.forEach((c) => {
-    const card = el("div", "play-card type-" + c.type);
+    const subCls = c.subtype ? " sub-" + c.subtype : "";
+    const card = el("div", "play-card type-" + c.type + subCls);
+    const conditionHint =
+      c.type === "condition"
+        ? `<div class="pc-flag">⏱ Can be played during another player's turn</div>`
+        : "";
     card.innerHTML = `
       <div class="pc-cost">⚡${c.cost || 0}</div>
       <div class="pc-name">${c.name}</div>
       <div class="pc-type">${c.type}${c.strength != null ? " · 💪" + c.strength : ""}</div>
-      <div class="pc-text">${c.text || ""}</div>`;
+      <div class="pc-text">${c.text || ""}</div>
+      ${conditionHint}`;
     cards.appendChild(card);
   });
   hand.appendChild(cards);
@@ -488,8 +504,12 @@ function doDiscard(action) {
     .filter(Boolean)
     .map((card) => card.id);
   const r = actDiscard(game, action, ids);
-  if (!r.ok) alert(r.error);
-  afterAction(p);
+  if (!r.ok) return alert(r.error);
+  afterAction(p); // re-render so the new hand is visible
+  if (r.drew) {
+    const fresh = p.hand.slice(-r.drew).map((card) => card.name).join(", ");
+    alert(`Discarded ${r.drew} and drew ${r.drew} new card(s):\n${fresh}\n\nYour new hand is shown below.`);
+  }
 }
 
 function pickLocation(player, message) {
