@@ -58,14 +58,16 @@ body {
 .vp-heart { font-size: 30px; }
 .vp-name { font-size: 22px; font-weight: bold; color: var(--vc); margin-top: 4px; }
 .vp-title { color: var(--muted); font-style: italic; font-size: 13px; }
-.vp-obj { margin-top: 10px; font-size: 13px; color: var(--ink); line-height: 1.4; }
+.vp-diff { margin-top: 6px; font-size: 14px; color: var(--gold); letter-spacing: 1px; }
+.vp-obj { margin-top: 8px; font-size: 13px; color: var(--ink); line-height: 1.4; }
 .vp-badge {
   position: absolute; top: 12px; right: 12px; background: var(--vc); color: #fff;
   min-width: 26px; height: 26px; border-radius: 13px; display: grid; place-items: center;
   font-weight: bold; font-size: 12px; padding: 0 6px;
 }
 .vp-badge:empty { display: none; }
-.setup-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.setup-bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.setup-buttons { display: flex; gap: 10px; }
 .pick-hint { color: var(--muted); }
 
 /* ---- Top bar ---- */
@@ -84,6 +86,38 @@ body {
 .tb-power b { color: var(--gold); font-size: 24px; }
 .tb-phase { font-size: 12px; color: var(--muted); }
 .tb-right { display: flex; gap: 8px; }
+
+/* ---- Coach strip (first-round guidance) ---- */
+.coach {
+  background: linear-gradient(180deg, #2c2350, var(--bg2));
+  border: 1px solid var(--vc); border-left: 5px solid var(--vc);
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+  font-size: 14px; color: var(--ink);
+}
+.coach b { color: var(--gold); }
+.coach-help { color: var(--muted); font-size: 12px; margin-left: 6px; }
+
+/* ---- Tutorial modal ---- */
+.tutorial { max-width: 560px; }
+.tutorial h2 { margin-top: 0; color: var(--gold); }
+.tut-intro { color: var(--ink); margin: 0 0 10px; }
+.tut-steps { margin: 0 0 14px; padding-left: 22px; }
+.tut-steps li { font-size: 13px; line-height: 1.5; margin-bottom: 8px; color: var(--ink); }
+.tut-steps b { color: var(--gold); }
+.tut-obj {
+  background: #00000035; border: 1px solid var(--vc); border-radius: 8px;
+  padding: 8px 10px; font-size: 13px; margin: 0 0 8px;
+}
+.tut-win {
+  background: #00000030; border: 1px solid var(--line); border-radius: 8px;
+  padding: 8px 12px; margin: 0 0 10px;
+}
+.tut-win-label { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); margin-bottom: 4px; }
+.tut-win-steps { margin: 0; padding-left: 20px; }
+.tut-win-steps li { font-size: 13px; line-height: 1.5; margin-bottom: 6px; color: var(--ink); }
+.tut-win-steps b { color: var(--gold); }
+.tut-tip { font-size: 12px; color: var(--muted); margin: 0 0 16px; }
+.tutorial .btn-primary { width: 100%; }
 
 /* ---- Layout ---- */
 .main { display: grid; grid-template-columns: 1fr 300px; gap: 14px; align-items: start; }
@@ -187,6 +221,14 @@ body {
 .overlay { position: fixed; inset: 0; background: #000a; display: grid; place-items: center; z-index: 50; }
 .modal { background: var(--panel); border: 1px solid var(--vc); border-radius: 16px; padding: 22px; max-width: 560px; }
 .modal h2 { margin-top: 0; color: var(--gold); }
+.fate-preview {
+  background: #00000035; border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 14px;
+}
+.fate-preview-label { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.fate-loc { font-size: 12px; padding: 3px 0; border-bottom: 1px solid #ffffff10; }
+.fate-loc:last-child { border-bottom: none; }
+.fate-block { color: var(--gold); }
 .fate-cards { display: flex; gap: 12px; }
 .fate-cards .play-card { cursor: pointer; }
 .fate-cards .play-card:hover { border-color: var(--gold); transform: translateY(-3px); }
@@ -272,3 +314,108 @@ body.theme-queenofhearts {
   background-repeat: repeat, no-repeat, no-repeat;
   background-size: 130px 130px, 100% 100%, 100% 100%;
 }
+
+/* Scar — savanna paw-prints */
+body.theme-scar {
+  background-color: #15100a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23e89a4a' fill-opacity='0.06'%3E%3Cellipse cx='40' cy='45' rx='9' ry='12'/%3E%3Ccircle cx='28' cy='30' r='4'/%3E%3Ccircle cx='40' cy='25' r='4'/%3E%3Ccircle cx='52' cy='30' r='4'/%3E%3Cellipse cx='90' cy='95' rx='9' ry='12'/%3E%3Ccircle cx='78' cy='80' r='4'/%3E%3Ccircle cx='90' cy='75' r='4'/%3E%3Ccircle cx='102' cy='80' r='4'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 560px at 50% 0%, rgba(224,123,47,0.12), transparent 65%),
+    radial-gradient(1200px 620px at 50% -10%, #2a1c0e, #15100a);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 120px 120px, 100% 100%, 100% 100%;
+}
+
+/* Cruella — dalmatian spots */
+body.theme-cruella {
+  background-color: #101018;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%23cfcfe0' fill-opacity='0.08'%3E%3Cellipse cx='30' cy='35' rx='13' ry='10'/%3E%3Cellipse cx='85' cy='70' rx='16' ry='12' transform='rotate(20 85 70)'/%3E%3Cellipse cx='60' cy='100' rx='9' ry='7'/%3E%3Cellipse cx='105' cy='25' rx='7' ry='6'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1100px 560px at 50% -10%, rgba(220,220,235,0.07), transparent 70%),
+    radial-gradient(1200px 620px at 50% -10%, #20202c, #101018);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 120px 120px, 100% 100%, 100% 100%;
+}
+
+/* Dr. Facilier — voodoo card-suits over purple/green */
+body.theme-facilier {
+  background-color: #0e0a1a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cg fill='%237d5bd0' fill-opacity='0.07'%3E%3Cpath transform='translate(20,18) scale(0.9)' d='M12 2 C12 2 3 11 3 16 a4 4 0 0 0 8 0 c0 3 -1 4 -2 5 h6 c-1 -1 -2 -2 -2 -5 a4 4 0 0 0 8 0 c0 -5 -9 -14 -9 -14 Z'/%3E%3Cpath transform='translate(78,68) scale(1.2)' d='M12 2 C12 2 3 11 3 16 a4 4 0 0 0 8 0 c0 3 -1 4 -2 5 h6 c-1 -1 -2 -2 -2 -5 a4 4 0 0 0 8 0 c0 -5 -9 -14 -9 -14 Z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(900px 520px at 50% 110%, rgba(80,200,120,0.06), transparent 60%),
+    radial-gradient(1200px 620px at 50% -10%, #1e1230, #0e0a1a);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 120px 120px, 100% 100%, 100% 100%;
+}
+
+/* Gaston — hunting antlers (a deer rack to echo his tavern trophies) */
+body.theme-gaston {
+  background-color: #12090a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cg fill='none' stroke='%23e25b50' stroke-opacity='0.08' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M65 104 C58 82 53 68 42 46'/%3E%3Cpath d='M50 64 L34 57'/%3E%3Cpath d='M46 53 L31 44'/%3E%3Cpath d='M42 46 L36 32'/%3E%3Cpath d='M65 104 C72 82 77 68 88 46'/%3E%3Cpath d='M80 64 L96 57'/%3E%3Cpath d='M84 53 L99 44'/%3E%3Cpath d='M88 46 L94 32'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 560px at 50% 0%, rgba(214,52,44,0.12), transparent 65%),
+    radial-gradient(1200px 620px at 50% -10%, #281110, #12090a);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 130px 130px, 100% 100%, 100% 100%;
+}
+
+/* Darkstalker — NightWing starry sky with a crescent moon */
+body.theme-darkstalker {
+  background-color: #0b0a1a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cg fill='%23a99cf0' fill-opacity='0.10'%3E%3Cpath d='M30 20 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2 Z'/%3E%3Cpath d='M100 60 l1.5 4.5 4.5 1.5 -4.5 1.5 -1.5 4.5 -1.5 -4.5 -4.5 -1.5 4.5 -1.5 Z'/%3E%3Cpath d='M60 105 l1.5 4.5 4.5 1.5 -4.5 1.5 -1.5 4.5 -1.5 -4.5 -4.5 -1.5 4.5 -1.5 Z'/%3E%3Ccircle cx='120' cy='25' r='1.5'/%3E%3Ccircle cx='20' cy='90' r='1.5'/%3E%3Ccircle cx='85' cy='30' r='1.2'/%3E%3C/g%3E%3Cpath d='M120 110 a13 13 0 1 1 -4 -25 a10 10 0 1 0 4 25 Z' fill='%23a99cf0' fill-opacity='0.07'/%3E%3C/svg%3E"),
+    radial-gradient(1000px 600px at 50% -10%, rgba(107,92,201,0.14), transparent 65%),
+    radial-gradient(1200px 620px at 50% -10%, #161232, #0b0a1a);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 140px 140px, 100% 100%, 100% 100%;
+}
+
+/* President Snow — white roses over Capitol crimson */
+body.theme-snow {
+  background-color: #150608;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cg fill='%23f3e9ec' fill-opacity='0.06'%3E%3Cg transform='translate(38,40)'%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(72)'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(144)'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(216)'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(288)'/%3E%3Ccircle r='4'/%3E%3C/g%3E%3Cg transform='translate(98,95) scale(0.8)'%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(72)'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(144)'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(216)'/%3E%3Cellipse rx='5' ry='11' cx='0' cy='-10' transform='rotate(288)'/%3E%3Ccircle r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 560px at 50% -10%, rgba(155,28,49,0.16), transparent 65%),
+    radial-gradient(1200px 620px at 50% -10%, #2a0c12, #150608);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 130px 130px, 100% 100%, 100% 100%;
+}
+
+/* Voldemort — the Dark Mark (skull with a serpent) over a grey-green gloom */
+body.theme-voldemort {
+  background-color: #101110;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='130'%3E%3Cg stroke='%2386c98e' stroke-opacity='0.09' fill='none' stroke-width='1.8' stroke-linecap='round'%3E%3Ccircle cx='44' cy='40' r='15'/%3E%3Cpath d='M36 54 q8 7 16 0'/%3E%3Cpath d='M44 55 Q58 72 44 88 Q32 100 48 112'/%3E%3C/g%3E%3Cg fill='%2386c98e' fill-opacity='0.10'%3E%3Ccircle cx='38' cy='38' r='2.6'/%3E%3Ccircle cx='50' cy='38' r='2.6'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 580px at 50% -5%, rgba(134,201,142,0.10), transparent 60%),
+    radial-gradient(1200px 620px at 50% -10%, #1b1d1a, #101110);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 130px 130px, 100% 100%, 100% 100%;
+}
+
+/* Drago Bludvist — dragon scales in icy blue (the Bewilderbeast's frost) */
+body.theme-drago {
+  background-color: #0c1419;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='40'%3E%3Cg fill='none' stroke='%238fd0e6' stroke-opacity='0.07' stroke-width='1.5'%3E%3Cpath d='M0 30 a15 15 0 0 1 30 0'/%3E%3Cpath d='M30 30 a15 15 0 0 1 30 0'/%3E%3Cpath d='M-15 12 a15 15 0 0 1 30 0'/%3E%3Cpath d='M15 12 a15 15 0 0 1 30 0'/%3E%3Cpath d='M45 12 a15 15 0 0 1 30 0'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 580px at 50% -5%, rgba(143,208,230,0.10), transparent 62%),
+    radial-gradient(1200px 620px at 50% -10%, #11242e, #0c1419);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 60px 40px, 100% 100%, 100% 100%;
+}
+
+/* Aaron Burr — founding-era gold stars over political navy */
+body.theme-burr {
+  background-color: #0d0f1a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cg fill='%23d8b34a' fill-opacity='0.07'%3E%3Cpath d='M28 14 l3 9 9 0 -7 6 3 9 -8 -6 -8 6 3 -9 -7 -6 9 0 Z'/%3E%3Cpath transform='translate(48,52) scale(0.7)' d='M28 14 l3 9 9 0 -7 6 3 9 -8 -6 -8 6 3 -9 -7 -6 9 0 Z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(1000px 560px at 50% -10%, rgba(85,102,160,0.16), transparent 65%),
+    radial-gradient(1200px 620px at 50% -10%, #161a2e, #0d0f1a);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size: 100px 100px, 100% 100%, 100% 100%;
+}
+
+/* ---- emoji / progress / obstacle bits ---- */
+.vp-spark { font-size: 14px; opacity: .85; }
+.tb-progress { font-size: 12px; color: var(--gold); margin-top: 2px; }
+.obstacle-zone { border-color: #c9913a66; }
+.obstacle-tokens { font-size: 16px; letter-spacing: 2px; }

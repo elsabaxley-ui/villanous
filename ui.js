@@ -8,6 +8,7 @@
 let game = null;
 let setup = { count: 2, picks: [] };
 let pendingFate = null; // { drawn, targetIndex } awaiting a choice
+let tutorialOpen = false; // "How to Play" overlay
 
 const $ = (sel) => document.querySelector(sel);
 const el = (tag, cls, html) => {
@@ -33,12 +34,13 @@ function renderSetup() {
   const grid = el("div", "villain-grid");
   VILLAIN_ORDER.forEach((key) => {
     const v = VILLAINS[key];
-    const card = el("div", "villain-pick");
+    const card = el("div", "villain-pick" + (setup.picks.includes(key) ? " picked" : ""));
     card.style.setProperty("--vc", v.color);
     card.innerHTML = `
-      <div class="vp-heart">${v.heart}</div>
-      <div class="vp-name">${v.name}</div>
+      <div class="vp-heart">${v.icon || v.heart} <span class="vp-spark">✨</span></div>
+      <div class="vp-name">${v.heart} ${v.name}</div>
       <div class="vp-title">${v.title}</div>
+      <div class="vp-diff" title="Difficulty ${villainDifficulty(key)}/5">${difficultyStars(key)}</div>
       <div class="vp-obj">🎯 ${v.objectiveText}</div>
       <div class="vp-badge"></div>`;
     card.addEventListener("click", () => togglePick(key, card));
@@ -48,12 +50,18 @@ function renderSetup() {
   wrap.appendChild(grid);
 
   const bar = el("div", "setup-bar");
+  bar.appendChild(el("div", "pick-hint", "Select 2–6 villains"));
+  const buttons = el("div", "setup-buttons");
+  const even = el("button", "btn btn-ghost", "⚖️ Even Match");
+  even.title = "Auto-pick a lineup of villains with matched difficulty";
+  even.addEventListener("click", evenMatch);
   const start = el("button", "btn btn-primary", "Start Game");
   start.id = "start-btn";
   start.disabled = true;
   start.addEventListener("click", startGame);
-  bar.appendChild(el("div", "pick-hint", "Select 2–6 villains"));
-  bar.appendChild(start);
+  buttons.appendChild(even);
+  buttons.appendChild(start);
+  bar.appendChild(buttons);
   wrap.appendChild(bar);
 
   root.appendChild(wrap);
@@ -81,15 +89,46 @@ function refreshPickState() {
   const btn = $("#start-btn");
   if (btn) btn.disabled = setup.picks.length < 2;
   const hint = $(".pick-hint");
-  if (hint)
-    hint.textContent =
-      setup.picks.length < 2
-        ? `Select 2–6 villains (${setup.picks.length} chosen)`
-        : `${setup.picks.length} villains ready`;
+  if (hint) {
+    if (setup.picks.length < 2) {
+      hint.textContent = `Select 2–6 villains (${setup.picks.length} chosen)`;
+    } else {
+      const diffs = setup.picks.map(villainDifficulty);
+      const lo = Math.min(...diffs);
+      const hi = Math.max(...diffs);
+      const spread = hi - lo;
+      const balance =
+        spread === 0 ? "perfectly even ⚖️" : spread <= 1 ? "well matched" : "uneven — try Even Match";
+      hint.textContent = `${setup.picks.length} villains · difficulty ${lo}★–${hi}★ (${balance})`;
+    }
+  }
+}
+
+// Auto-pick a lineup whose villains are as close in difficulty as possible.
+function evenMatch() {
+  const count = setup.picks.length >= 2 ? setup.picks.length : 4;
+  const sorted = VILLAIN_ORDER.slice().sort(
+    (a, b) => villainDifficulty(a) - villainDifficulty(b)
+  );
+  // Slide a window of `count` and find the smallest difficulty spread.
+  let minSpread = Infinity;
+  const windows = [];
+  for (let i = 0; i + count <= sorted.length; i++) {
+    const win = sorted.slice(i, i + count);
+    const spread = villainDifficulty(win[win.length - 1]) - villainDifficulty(win[0]);
+    if (spread < minSpread) minSpread = spread;
+    windows.push({ win, spread });
+  }
+  // Among the tightest windows, pick one at random for variety.
+  const best = windows.filter((w) => w.spread === minSpread);
+  const chosen = best[Math.floor(Math.random() * best.length)];
+  setup.picks = chosen.win.slice();
+  renderSetup();
 }
 
 function startGame() {
   game = newGame(setup.picks);
+  tutorialOpen = true; // greet the first player with the How-to-Play guide
   render();
 }
 
@@ -107,23 +146,112 @@ function render() {
   document.body.className = "theme-" + p.villainKey;
 
   root.appendChild(renderTopBar(p));
+  if (game.turn === 1) root.appendChild(renderCoach(p)); // first-round guidance
   const main = el("div", "main");
   main.appendChild(renderRealm(p));
   main.appendChild(renderSidebar(p));
   root.appendChild(main);
   root.appendChild(renderHand(p));
   if (pendingFate) root.appendChild(renderFateChooser());
+  if (tutorialOpen) root.appendChild(renderTutorial(p));
+}
+
+// A one-line "what to do now" strip shown during the first round.
+function renderCoach(p) {
+  const step =
+    game.phase === "move"
+      ? `<b>Step 1 — Move:</b> click <b>“Move here”</b> on a location different from where you are.`
+      : `<b>Step 2 — Act:</b> click the glowing <b>action buttons</b> at your location (Gain Power, Play a Card, Fate…), then press <b>End Turn ▶</b>.`;
+  const coach = el("div", "coach", `🧭 ${step} <span class="coach-help">Need the full rules? Tap ❓ Help.</span>`);
+  return coach;
+}
+
+function renderTutorial(p) {
+  const v = VILLAINS[p.villainKey];
+  const overlay = el("div", "overlay");
+  const box = el("div", "modal tutorial");
+  box.innerHTML = `
+    <h2>How to Play — Villainous</h2>
+    <p class="tut-intro">You are <b style="color:var(--vc)">${v.icon} ${p.name}</b>. Each turn:</p>
+    <ol class="tut-steps">
+      <li><b>🦹 Move</b> your mover to a <b>different</b> location (click “Move here”). You must move every turn.</li>
+      <li><b>⚡ Take actions</b> shown at that location: Gain Power, Play a Card, Fate, Vanquish, and more. A <b>Hero covers the top actions</b>, so defeat or work around it.</li>
+      <li><b>🃏 Play cards</b> from your hand by spending Power — Allies (to fight Heroes), Items, and Effects.</li>
+      <li><b>🎴 Fate</b> an opponent to drop Heroes into their realm and slow them down.</li>
+      <li><b>▶ End Turn</b> to draw back up to 4 cards and pass the device.</li>
+    </ol>
+    <p class="tut-obj">🎯 <b>Your goal:</b> ${v.objectiveText}</p>
+    <div class="tut-win">
+      <div class="tut-win-label">🏆 How to win as ${v.name}:</div>
+      <ol class="tut-win-steps">
+        ${villainGuide(p.villainKey).map((s) => `<li>${s}</li>`).join("")}
+      </ol>
+    </div>
+    <p class="tut-tip">💡 Watch the 🎯 tracker in the top bar to see your progress. Some locations start 🔒 locked.</p>`;
+  const btn = el("button", "btn btn-primary", "Got it — let's play!");
+  btn.addEventListener("click", () => {
+    tutorialOpen = false;
+    render();
+  });
+  box.appendChild(btn);
+  overlay.appendChild(box);
+  return overlay;
+}
+
+// Short objective-progress readout for villains with a counter/token goal.
+function objectiveProgress(p) {
+  switch (p.villainKey) {
+    case "scar":
+      return `Succession ${p.successionStrength}/15 Strength`;
+    case "cruella":
+      return `Puppies ${p.puppies}/99`;
+    case "gaston": {
+      const left = p.board.reduce((n, l) => n + l.obstacles, 0);
+      return `Obstacles left: ${left}`;
+    }
+    case "facilier": {
+      const tal = p.board.some((l) => l.cards.some((c) => c.subtype === "talisman"));
+      return `Talisman ${tal ? "✓" : "✗"} · Rule N.O. ${p.flags.ruleNewOrleans ? "✓" : "✗"}`;
+    }
+    case "snow":
+      return `Katniss ${p.flags.katnissDefeated ? "✓" : "✗"} · Rebel Army ${
+        p.flags.objectiveHeroDefeated ? "✓" : "✗"
+      }`;
+    case "darkstalker":
+      return `Crown ${p.flags["trophy_Crown of the NightWings"] ? "✓" : "✗"} · IceWing Army ${
+        p.flags.objectiveHeroDefeated ? "✓" : "✗"
+      }`;
+    case "voldemort": {
+      const h = p.board.reduce(
+        (n, l) => n + l.cards.filter((c) => c.subtype === "hallow").length,
+        0
+      );
+      return `Hallows ${h}/3 · Harry ${p.flags.harryDefeated ? "✓" : "✗"}`;
+    }
+    case "drago": {
+      const sanctuary = p.board.find((l) => l.name === "The Dragon Sanctuary");
+      const bw = sanctuary && sanctuary.cards.some((c) => c.subtype === "bewilderbeast");
+      return `Bewilderbeast ${bw ? "✓" : "✗"} · Hiccup ${p.flags.hiccupDefeated ? "✓" : "✗"}`;
+    }
+    case "burr":
+      return `Influence ${p.politicalInfluence}/10 · Hamilton ${
+        p.flags.hamiltonDefeated ? "✓" : "✗"
+      }`;
+    default:
+      return null;
+  }
 }
 
 function renderTopBar(p) {
   const v = VILLAINS[p.villainKey];
   const bar = el("div", "topbar");
   bar.style.setProperty("--vc", v.color);
+  const progress = objectiveProgress(p);
   bar.innerHTML = `
     <div class="tb-left">
-      <span class="tb-heart">${v.heart}</span>
+      <span class="tb-heart">${v.icon || v.heart}</span>
       <div>
-        <div class="tb-name">${p.name}</div>
+        <div class="tb-name">${v.heart} ${p.name}</div>
         <div class="tb-title">${v.title}</div>
       </div>
     </div>
@@ -132,12 +260,21 @@ function renderTopBar(p) {
       <div class="tb-phase">Turn ${game.turn} · ${
     game.phase === "move" ? "Move your mover" : "Take actions"
   }</div>
+      ${progress ? `<div class="tb-progress">🎯 ${progress}</div>` : ""}
     </div>`;
   const right = el("div", "tb-right");
+  const helpBtn = el("button", "btn btn-ghost", "❓ Help");
+  helpBtn.addEventListener("click", () => {
+    tutorialOpen = true;
+    render();
+  });
   const objBtn = el("button", "btn btn-ghost", "🎯 Objective");
-  objBtn.addEventListener("click", () =>
-    alert(`${p.name}'s objective:\n\n${v.objectiveText}`)
-  );
+  objBtn.addEventListener("click", () => {
+    const steps = villainGuide(p.villainKey)
+      .map((s, i) => `${i + 1}. ${s.replace(/<[^>]+>/g, "")}`)
+      .join("\n");
+    alert(`${p.name}'s objective:\n\n${v.objectiveText}\n\nHow to win:\n${steps}`);
+  });
   const endBtn = el("button", "btn btn-primary", "End Turn ▶");
   endBtn.disabled = !game.moved;
   endBtn.title = game.moved ? "" : "Move your mover first";
@@ -145,6 +282,7 @@ function renderTopBar(p) {
     endTurn(game);
     render();
   });
+  right.appendChild(helpBtn);
   right.appendChild(objBtn);
   right.appendChild(endBtn);
   bar.appendChild(right);
@@ -179,9 +317,23 @@ function renderRealm(p) {
     loc.topActions.forEach((a) => top.appendChild(actionChip(a, canAct && !heroPresent)));
     const bottom = el("div", "act-row");
     loc.bottomActions.forEach((a) => bottom.appendChild(actionChip(a, canAct)));
+    // Card-granted Vanquish (Snow's Rose / Darkstalker's Scroll).
+    const hasGrantVanq = loc.cards.some((c) => c.grantsVanquish);
+    const alreadyVanq = [...loc.topActions, ...loc.bottomActions].some((a) => a.a === "vanquish");
+    if (hasGrantVanq && !alreadyVanq) {
+      bottom.appendChild(actionChip({ a: "vanquish" }, canAct));
+    }
     acts.appendChild(top);
     acts.appendChild(bottom);
     card.appendChild(acts);
+
+    // Obstacle tokens (Gaston).
+    if (loc.obstacles > 0) {
+      const obox = el("div", "zone obstacle-zone");
+      obox.appendChild(el("div", "zone-label", "Obstacles"));
+      obox.appendChild(el("div", "obstacle-tokens", "🚧 ".repeat(loc.obstacles).trim()));
+      card.appendChild(obox);
+    }
 
     // Heroes.
     if (loc.heroes.length) {
@@ -236,9 +388,15 @@ function actionChip(action, active) {
 function tokenCard(c, kind) {
   const subCls = c.subtype ? " sub-" + c.subtype : "";
   const t = el("div", "token token-" + kind + subCls);
+  // Show Burr's Political Influence count right on the tracker item.
+  const influence =
+    c.subtype === "influence"
+      ? `<div class="tok-str">🏛️ ${currentPlayer(game).politicalInfluence}/10</div>`
+      : "";
   t.innerHTML = `
     <div class="tok-name">${c.name}</div>
     ${c.strength != null ? `<div class="tok-str">💪 ${c.strength}</div>` : ""}
+    ${influence}
     <div class="tok-text">${c.text || ""}</div>`;
   return t;
 }
@@ -332,6 +490,7 @@ function doAction(action) {
 }
 
 function afterAction(p) {
+  refreshLocks(game, p); // condition-based unlocks (e.g. Voldemort's Hogwarts)
   checkWin(game, p); // some objectives (e.g. power) can flip mid-turn
   render();
 }
@@ -358,8 +517,41 @@ function doPlayCard(action) {
     if (locIndex == null) return;
   }
   const r = actPlayCard(game, action, card.id, locIndex);
-  if (!r.ok) alert(r.error);
+  if (!r.ok) return alert(r.error);
+  // Cards that instantly defeat a Hero (White Rose, Plague Spell, Morsmordre).
+  if (card.defeatHeroEffect) doInstantDefeat(card);
   afterAction(p);
+}
+
+// Choose a Hero in your Realm to instantly defeat (excludes the final boss;
+// honors a Strength cap like Morsmordre's "Strength 4 or less").
+function doInstantDefeat(card) {
+  const p = currentPlayer(game);
+  const cap = card && card.defeatHeroMaxStrength;
+  const targets = [];
+  p.board.forEach((l) =>
+    l.heroes.forEach((h) => {
+      if (h.winOnDefeat) return;
+      if (cap != null && (h.strength || 0) > cap) return;
+      targets.push({ h, loc: l.name });
+    })
+  );
+  if (!targets.length)
+    return alert(
+      cap != null
+        ? `No eligible Heroes (Strength ${cap} or less) in your Realm.`
+        : "No eligible Heroes in your Realm to defeat."
+    );
+  const c = prompt(
+    "Instantly defeat which Hero?\n" +
+      targets
+        .map((t, i) => `${i + 1}. ${t.h.name} (💪${t.h.strength}) at ${t.loc}`)
+        .join("\n")
+  );
+  const sel = targets[parseInt(c, 10) - 1];
+  if (!sel) return;
+  const r = instantDefeatHero(game, sel.h.id, cap);
+  if (!r.ok) alert(r.error);
 }
 
 function doVanquish(action) {
@@ -419,22 +611,54 @@ function doFate(action) {
   render();
 }
 
+// Top actions are the ones a Hero covers when placed at a location.
+function blockableLabel(loc) {
+  if (loc.heroes.length) return "top actions already blocked";
+  if (!loc.topActions.length) return "nothing to block";
+  return (
+    "blocks " +
+    loc.topActions
+      .map((a) => ACTION_ICONS[a.a] + ACTION_LABELS[a.a] + (a.n != null ? " " + a.n : ""))
+      .join(", ")
+  );
+}
+
 function renderFateChooser() {
   const overlay = el("div", "overlay");
   const box = el("div", "modal");
   const target = game.players[pendingFate.targetIndex];
   box.appendChild(el("h2", null, `Fate ${target.name} — choose one to play`));
+
+  // Board preview: shows what each location's Heroes would block.
+  const preview = el("div", "fate-preview");
+  preview.appendChild(el("div", "fate-preview-label",
+    `${target.name}'s locations — placing a Hero covers the top actions:`));
+  target.board.forEach((loc) => {
+    const heroesHere = loc.heroes.length
+      ? " · 🦸 " + loc.heroes.map((h) => h.name).join(", ")
+      : "";
+    preview.appendChild(el("div", "fate-loc",
+      `<b>${loc.locked ? "🔒 " : ""}${loc.name}</b> — <span class="fate-block">${blockableLabel(loc)}</span>${heroesHere}`));
+  });
+  box.appendChild(preview);
+
   const row = el("div", "fate-cards");
   pendingFate.drawn.forEach((c) => {
     const card = el("div", "play-card type-" + (c.type === "hero" ? "hero" : "effect"));
+    const fixed = c.placeAt ? `<div class="pc-flag">📍 Always placed at: ${c.placeAt}</div>` : "";
     card.innerHTML = `
       <div class="pc-name">${c.name}</div>
       <div class="pc-type">${c.type}${c.strength != null ? " · 💪" + c.strength : ""}</div>
-      <div class="pc-text">${c.text || ""}</div>`;
+      <div class="pc-text">${c.text || ""}</div>
+      ${fixed}`;
     card.addEventListener("click", () => {
       let li = 0;
-      if (c.type === "hero") {
-        li = pickLocation(target, `Place ${c.name} at which of ${target.name}'s locations?`);
+      if (c.placeAt) {
+        // Fixed-location Fate card (e.g. Queen Glory, IceWing Army).
+        li = target.board.findIndex((l) => l.name === c.placeAt);
+        if (li < 0) li = 0;
+      } else if (c.type === "hero") {
+        li = pickFateLocation(target, c.name);
         if (li == null) return;
       }
       resolveFate(game, pendingFate.targetIndex, c.id, pendingFate.drawn, li);
@@ -446,6 +670,21 @@ function renderFateChooser() {
   box.appendChild(row);
   overlay.appendChild(box);
   return overlay;
+}
+
+// Location picker for Fate that spells out what each placement blocks.
+function pickFateLocation(target, heroName) {
+  const c = prompt(
+    `Place ${heroName} on which of ${target.name}'s locations?\n` +
+      "(A Hero covers that location's TOP actions)\n\n" +
+      target.board
+        .map((l, i) => `${i + 1}. ${l.name} — ${blockableLabel(l)}`)
+        .join("\n")
+  );
+  if (!c) return null;
+  const idx = parseInt(c, 10) - 1;
+  if (idx < 0 || idx >= target.board.length) return null;
+  return idx;
 }
 
 function doMoveAllyItem(action) {

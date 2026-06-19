@@ -20,16 +20,22 @@ python3 -m http.server 8000
 3. **End Turn** to draw back up to 4 cards and pass to the next player.
 4. First villain to complete their **objective** (shown top-right) wins.
 
-## The 6 villains & objectives
+## The 10 villains & objectives
 
 | Villain | Objective |
 |---|---|
-| Maleficent | Start your turn with a Curse at each of your 4 locations |
-| Captain Hook | Defeat Peter Pan at the Jolly Roger |
-| Prince John | Start your turn with at least 20 Power |
-| Queen of Hearts | A Wicket at every location + keep your temper |
-| Ursula | Have Triton's Trident and the Crown in your realm |
-| Jafar | Magic Lamp at the Sultan's Palace + Genie under control |
+| Maleficent 🐉 | Start your turn with a Curse at each of your 4 locations |
+| Captain Hook 🪝 | Defeat Peter Pan at the Jolly Roger |
+| Prince John 💰 | Start your turn with at least 20 Power |
+| Queen of Hearts 🃏 | A Wicket at every location + keep your temper |
+| Ursula 🐙 | Trident and Crown at Ursula's Lair |
+| Jafar 🪔 | Magic Lamp at the Sultan's Palace + Genie under control |
+| Scar 🦁 | 15+ Strength in the Succession Pile (defeated heroes) |
+| Cruella De Vil 🐕 | Capture 99+ puppies |
+| Dr. Facilier 🎩 | Play the Talisman + Rule New Orleans |
+| Gaston 💪 | Remove all 8 Obstacle tokens |
+
+Locked locations: Hangman's Tree (Hook), Cave of Wonders (Jafar), The Palace (Ursula).
 
 ## Project structure
 
